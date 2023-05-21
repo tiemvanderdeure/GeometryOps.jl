@@ -1,12 +1,25 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Barycentric coordinates · GeometryOps.jl</title><script data-outdated-warner src="../../../assets/warner.js"></script><link rel="canonical" href="https://asinghvi17.github.io/GeometryOps.jl/source/methods/barycentric/"/><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.045/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.24/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../../assets/documenter.js"></script><script src="../../../siteinfo.js"></script><script src="../../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../../">GeometryOps.jl</a></span></div><form class="docs-search" action="../../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../../">Home</a></li><li><span class="tocitem">Source code</span><ul><li><a class="tocitem" href="../../GeometryOps/">-</a></li><li><a class="tocitem" href="../../GeometryOps.jl.2667/">-</a></li><li><a class="tocitem" href="../../primitives/">-</a></li><li class="is-active"><a class="tocitem" href>Barycentric coordinates</a><ul class="internal"><li><a class="tocitem" href="#Methods-to-find-barycentric-coordinates"><span>Methods to find barycentric coordinates</span></a></li><li><a class="tocitem" href="#Example"><span>Example</span></a></li></ul></li><li><a class="tocitem" href="../centroid/">-</a></li><li><a class="tocitem" href="../contains/">-</a></li><li><a class="tocitem" href="../reproject/">-</a></li><li><a class="tocitem" href="../signed_area/">Signed area</a></li><li><a class="tocitem" href="../signed_distance/">Signed distance</a></li><li><a class="tocitem" href="../../transformations/flip/">-</a></li><li><a class="tocitem" href="../../transformations/reproject/">-</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Source code</a></li><li class="is-active"><a href>Barycentric coordinates</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Barycentric coordinates</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/asinghvi17/GeometryOps.jl/blob/main/docs/src/source/methods/barycentric.md#" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Barycentric-coordinates"><a class="docs-heading-anchor" href="#Barycentric-coordinates">Barycentric coordinates</a><a id="Barycentric-coordinates-1"></a><a class="docs-heading-anchor-permalink" href="#Barycentric-coordinates" title="Permalink"></a></h1><p>Generalized barycentric coordinates are a generalization of barycentric coordinates, which are typically used in triangles, to arbitrary polygons.</p><p>They provide a way to express a point within a polygon as a weighted average of the polygon&#39;s vertices.</p><p>In the case of a triangle, barycentric coordinates are a set of three numbers <span>$(λ_1, λ_2, λ_3)$</span>, each associated with a vertex of the triangle. Any point within the triangle can be expressed as a weighted average of the vertices, where the weights are the barycentric coordinates. The weights sum to 1, and each is non-negative.</p><p>For a polygon with n vertices, generalized barycentric coordinates are a set of <span>$n$</span> numbers <span>$(λ_1, λ_2, ..., λ_n)$</span>, each associated with a vertex of the polygon. Any point within the polygon can be expressed as a weighted average of the vertices, where the weights are the generalized barycentric coordinates.</p><p>As with the triangle case, the weights sum to 1, and each is non-negative.</p><h2 id="Methods-to-find-barycentric-coordinates"><a class="docs-heading-anchor" href="#Methods-to-find-barycentric-coordinates">Methods to find barycentric coordinates</a><a id="Methods-to-find-barycentric-coordinates-1"></a><a class="docs-heading-anchor-permalink" href="#Methods-to-find-barycentric-coordinates" title="Permalink"></a></h2><pre><code class="language-julia hljs">function mean_value_barycentric_coordinates(polypoints::Vector{&lt;: Point{N1, T1}}, point::Point{N2, T2}) where {N1, N2, T1 &lt;: Real, T2 &lt;: Real}
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Barycentric coordinates · GeometryOps.jl</title><script data-outdated-warner src="../../../assets/warner.js"></script><link rel="canonical" href="https://asinghvi17.github.io/GeometryOps.jl/source/methods/barycentric/"/><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.045/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.24/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../../assets/documenter.js"></script><script src="../../../siteinfo.js"></script><script src="../../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../../">GeometryOps.jl</a></span></div><form class="docs-search" action="../../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../../">Home</a></li><li><span class="tocitem">Source code</span><ul><li><a class="tocitem" href="../../GeometryOps/">-</a></li><li><a class="tocitem" href="../../GeometryOps.jl.2655/">-</a></li><li><a class="tocitem" href="../../primitives/">-</a></li><li class="is-active"><a class="tocitem" href>Barycentric coordinates</a><ul class="internal"><li><a class="tocitem" href="#Methods-to-find-barycentric-coordinates"><span>Methods to find barycentric coordinates</span></a></li><li><a class="tocitem" href="#Example"><span>Example</span></a></li></ul></li><li><a class="tocitem" href="../centroid/">-</a></li><li><a class="tocitem" href="../contains/">-</a></li><li><a class="tocitem" href="../reproject/">-</a></li><li><a class="tocitem" href="../signed_area/">Signed area</a></li><li><a class="tocitem" href="../signed_distance/">Signed distance</a></li><li><a class="tocitem" href="../../transformations/flip/">-</a></li><li><a class="tocitem" href="../../transformations/reproject/">-</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Source code</a></li><li class="is-active"><a href>Barycentric coordinates</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Barycentric coordinates</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/asinghvi17/GeometryOps.jl/blob/main/docs/src/source/methods/barycentric.md#" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Barycentric-coordinates"><a class="docs-heading-anchor" href="#Barycentric-coordinates">Barycentric coordinates</a><a id="Barycentric-coordinates-1"></a><a class="docs-heading-anchor-permalink" href="#Barycentric-coordinates" title="Permalink"></a></h1><p>Generalized barycentric coordinates are a generalization of barycentric coordinates, which are typically used in triangles, to arbitrary polygons.</p><p>They provide a way to express a point within a polygon as a weighted average of the polygon&#39;s vertices.</p><p>In the case of a triangle, barycentric coordinates are a set of three numbers <span>$(λ_1, λ_2, λ_3)$</span>, each associated with a vertex of the triangle. Any point within the triangle can be expressed as a weighted average of the vertices, where the weights are the barycentric coordinates. The weights sum to 1, and each is non-negative.</p><p>For a polygon with n vertices, generalized barycentric coordinates are a set of <span>$n$</span> numbers <span>$(λ_1, λ_2, ..., λ_n)$</span>, each associated with a vertex of the polygon. Any point within the polygon can be expressed as a weighted average of the vertices, where the weights are the generalized barycentric coordinates.</p><p>As with the triangle case, the weights sum to 1, and each is non-negative.</p><h2 id="Methods-to-find-barycentric-coordinates"><a class="docs-heading-anchor" href="#Methods-to-find-barycentric-coordinates">Methods to find barycentric coordinates</a><a id="Methods-to-find-barycentric-coordinates-1"></a><a class="docs-heading-anchor-permalink" href="#Methods-to-find-barycentric-coordinates" title="Permalink"></a></h2><pre><code class="language-julia hljs">function mean_value_barycentric_coordinates(polypoints::Vector{&lt;: Point{N1, T1}}, point::Point{N2, T2}) where {N1, N2, T1 &lt;: Real, T2 &lt;: Real}
     n = length(polypoints)
     λ = zeros(promote_type(T1, T2), n)
     if (N1 == N2 &amp;&amp; T1 == T2)
         poly = polypoints
     else
         poly = Makie.to_ndim.((Point{N2, promote_type(T1, T2)},), polypoints, 0)
-    end</code></pre><p>if !GeometryOps.contains(poly, point)     return λ end Describe this loop The loop computes barycentric coordinates by the mean-value method. The mean-value method is a method for computing barycentric coordinates for a point in a polygon. It is based on the observation that the barycentric coordinates of a point in a polygon are proportional to the areas of the triangles formed by the point and each pair of edges of the polygon. The mean-value method computes the areas of these triangles by computing the areas of the triangles formed by the point and each pair of edges of the polygon, and then averaging these areas.</p><pre><code class="language-julia hljs">    for i in 1:n
+    end
+    # if !GeometryOps.contains(poly, point)
+    #     return λ
+    # end
+    # Describe this loop
+    # The loop computes barycentric coordinates by the mean-value method.
+    # The mean-value method is a method for computing barycentric coordinates
+    # for a point in a polygon. It is based on the observation that the
+    # barycentric coordinates of a point in a polygon are proportional to the
+    # areas of the triangles formed by the point and each pair of edges of the
+    # polygon. The mean-value method computes the areas of these triangles by
+    # computing the areas of the triangles formed by the point and each pair of
+    # edges of the polygon, and then averaging these areas.
+    for i in 1:n
 
         prev = poly[mod1(i-1, n)]
         curr = poly[i]
@@ -18,6 +31,7 @@
         λ[i] = (tan(α1 / 2) + tan(α2 / 2)) / abs(d1)
 
     end
+    # Normalize the vector to sum to 1
     λ /= sum(λ)
     return λ
 end
@@ -35,33 +49,147 @@ end
 
 function distance(a, b)
     return norm(a - b)
-end</code></pre><h2 id="Example"><a class="docs-heading-anchor" href="#Example">Example</a><a id="Example-1"></a><a class="docs-heading-anchor-permalink" href="#Example" title="Permalink"></a></h2><p>This example was taken from <a href="https://doc.cgal.org/latest/Barycentric_coordinates_2/index.html">this page of CGAL&#39;s documentation</a>.</p><pre><code class="language- hljs">polygon_points = [
-Point(0.03, 0.05, 0.00), Point(0.07, 0.04, 0.02), Point(0.10, 0.04, 0.04),
-Point(0.14, 0.04, 0.06), Point(0.17, 0.07, 0.08), Point(0.20, 0.09, 0.10),
-Point(0.22, 0.11, 0.12), Point(0.25, 0.11, 0.14), Point(0.27, 0.10, 0.16),
-Point(0.30, 0.07, 0.18), Point(0.31, 0.04, 0.20), Point(0.34, 0.03, 0.22),
-Point(0.37, 0.02, 0.24), Point(0.40, 0.03, 0.26), Point(0.42, 0.04, 0.28),
-Point(0.44, 0.07, 0.30), Point(0.45, 0.10, 0.32), Point(0.46, 0.13, 0.34),
-Point(0.46, 0.19, 0.36), Point(0.47, 0.26, 0.38), Point(0.47, 0.31, 0.40),
-Point(0.47, 0.35, 0.42), Point(0.45, 0.37, 0.44), Point(0.41, 0.38, 0.46),
-Point(0.38, 0.37, 0.48), Point(0.35, 0.36, 0.50), Point(0.32, 0.35, 0.52),
-Point(0.30, 0.37, 0.54), Point(0.28, 0.39, 0.56), Point(0.25, 0.40, 0.58),
-Point(0.23, 0.39, 0.60), Point(0.21, 0.37, 0.62), Point(0.21, 0.34, 0.64),
-Point(0.23, 0.32, 0.66), Point(0.24, 0.29, 0.68), Point(0.27, 0.24, 0.70),
-Point(0.29, 0.21, 0.72), Point(0.29, 0.18, 0.74), Point(0.26, 0.16, 0.76),
-Point(0.24, 0.17, 0.78), Point(0.23, 0.19, 0.80), Point(0.24, 0.22, 0.82),
-Point(0.24, 0.25, 0.84), Point(0.21, 0.26, 0.86), Point(0.17, 0.26, 0.88),
-Point(0.12, 0.24, 0.90), Point(0.07, 0.20, 0.92), Point(0.03, 0.15, 0.94),
-Point(0.01, 0.10, 0.97), Point(0.02, 0.07, 1.00)]
+end
+
+function mean_value_barycentric_coordinates(poly::Polygon{N1, T1}, point::Point{N2, T2}) where {N1, N2, T1 &lt;: Real, T2 &lt;: Real}
+    ext = decompose(Point{N2, T2}, poly.exterior)
+    ints = decompose.((Point{N2, T2},), poly.interiors)
+    n = length(ext) + if isempty(ints)
+        0
+    else
+        sum(length.(ints))
+    end
+    λ = zeros(promote_type(T1, T2), n)
+    # if !GeometryOps.contains(poly, point)
+    #     return λ
+    # end
+    # Describe this loop
+    # The loop computes barycentric coordinates by the mean-value method.
+    # The mean-value method is a method for computing barycentric coordinates
+    # for a point in a polygon. It is based on the observation that the
+    # barycentric coordinates of a point in a polygon are proportional to the
+    # areas of the triangles formed by the point and each pair of edges of the
+    # polygon. The mean-value method computes the areas of these triangles by
+    # computing the areas of the triangles formed by the point and each pair of
+    # edges of the polygon, and then averaging these areas.
+    current_ind = 1
+    l_ext = length(ext)
+    for i in 1:l_ext
+
+        prev = ext[mod1(i-1, l_ext)]
+        curr = ext[i]
+        next = ext[mod1(i+1, l_ext)]
+
+        α1 = angle(prev, point, curr)
+        α2 = angle(curr, point, next)
+        d1 = distance(point, curr)
+        λ[current_ind] = (tan(α1 / 2) + tan(α2 / 2)) / abs(d1)
+        current_ind += 1
+
+    end
+    for hole in ints
+        l_hole = length(hole)
+        for i in 1:l_hole
+
+            prev = hole[mod1(i-1, l_hole)]
+            curr = hole[i]
+            next = hole[mod1(i+1, l_hole)]
+
+            α1 = angle(prev, point, curr)
+            α2 = angle(curr, point, next)
+            d1 = distance(point, curr)
+            λ[current_ind] = (tan(α1 / 2) + tan(α2 / 2)) / abs(d1)
+            current_ind += 1
+
+        end
+    end
+    # Normalize the vector to sum to 1
+    λ /= sum(λ)
+    return λ
+end</code></pre><h2 id="Example"><a class="docs-heading-anchor" href="#Example">Example</a><a id="Example-1"></a><a class="docs-heading-anchor-permalink" href="#Example" title="Permalink"></a></h2><p>This example was taken from <a href="https://doc.cgal.org/latest/Barycentric_coordinates_2/index.html">this page of CGAL&#39;s documentation</a>.</p><pre><code class="language- hljs">using GeometryBasics, GeometryOps, Makie
+polygon_points = Point3f[
+(0.03, 0.05, 0.00), (0.07, 0.04, 0.02), (0.10, 0.04, 0.04),
+(0.14, 0.04, 0.06), (0.17, 0.07, 0.08), (0.20, 0.09, 0.10),
+(0.22, 0.11, 0.12), (0.25, 0.11, 0.14), (0.27, 0.10, 0.16),
+(0.30, 0.07, 0.18), (0.31, 0.04, 0.20), (0.34, 0.03, 0.22),
+(0.37, 0.02, 0.24), (0.40, 0.03, 0.26), (0.42, 0.04, 0.28),
+(0.44, 0.07, 0.30), (0.45, 0.10, 0.32), (0.46, 0.13, 0.34),
+(0.46, 0.19, 0.36), (0.47, 0.26, 0.38), (0.47, 0.31, 0.40),
+(0.47, 0.35, 0.42), (0.45, 0.37, 0.44), (0.41, 0.38, 0.46),
+(0.38, 0.37, 0.48), (0.35, 0.36, 0.50), (0.32, 0.35, 0.52),
+(0.30, 0.37, 0.54), (0.28, 0.39, 0.56), (0.25, 0.40, 0.58),
+(0.23, 0.39, 0.60), (0.21, 0.37, 0.62), (0.21, 0.34, 0.64),
+(0.23, 0.32, 0.66), (0.24, 0.29, 0.68), (0.27, 0.24, 0.70),
+(0.29, 0.21, 0.72), (0.29, 0.18, 0.74), (0.26, 0.16, 0.76),
+(0.24, 0.17, 0.78), (0.23, 0.19, 0.80), (0.24, 0.22, 0.82),
+(0.24, 0.25, 0.84), (0.21, 0.26, 0.86), (0.17, 0.26, 0.88),
+(0.12, 0.24, 0.90), (0.07, 0.20, 0.92), (0.03, 0.15, 0.94),
+(0.01, 0.10, 0.97), (0.02, 0.07, 1.00)]
 f, a, p = poly(polygon_points; color = last.(polygon_points), colormap = cgrad(:jet, 18; categorical = true), shading = false)</code></pre><p>You can see that the polygon triangulation doesn&#39;t do any justice to the actual structure.  Let&#39;s visualize it using mean value coordinates:</p><pre><code class="language- hljs">polygon_zs = last.(polygon_points)
 xrange = LinRange(0, 0.5, 1000)
 yrange = LinRange(0, 0.5, 1000)
-@time mean_value_coordinate_field = mean_value_barycentric_coordinates.(
-    (Point2{Float64}.(polygon_points),),
-    Point2{Float64}.(xrange, yrange&#39;)
-)</code></pre><p>This returned a list of vectors of weights, one for each point in the grid.</p><p>We can use these vectors to extrapolate and interpolate from the z values of the polygon to some z value at each point in the grid:</p><pre><code class="language- hljs">mean_values = map(mean_value_coordinate_field) do λs
+@benchmark mean_value_coordinate_field = mean_value_barycentric_coordinates.(
+    (GeometryBasics.Polygon(Point2f.(polygon_points)),),
+    Point2f.(xrange, yrange&#39;)
+)
+# @time mean_value_coordinate_field_threadsx = ThreadsX.map(Point2{Float64}.(xrange, yrange&#39;)) do p
+#     mean_value_barycentric_coordinates(polygon_points, p)
+# end # 7s v/s 2s for serial processing...why?</code></pre><p>This returned a list of vectors of weights, one for each point in the grid.</p><p>We can use these vectors to extrapolate and interpolate from the z values of the polygon to some z value at each point in the grid:</p><pre><code class="language- hljs">mean_values = map(mean_value_coordinate_field) do λs
     sum(λs .* polygon_zs)
-end</code></pre><p>Now, we can visualize this!</p><pre><code class="language- hljs">f, a, p = heatmap(xrange, yrange, mean_values; colormap = cgrad(:jet, 18; categorical = true))
+end</code></pre><p>Now, we can visualize this!</p><pre><code class="language- hljs">f, a, p = heatmap(xrange, yrange, mean_values; colormap = cgrad(:jet, 18; categorical = true), axis = (; aspect = DataAspect()))
 poly!(Point2f.(polygon_points); color = :transparent, strokecolor = :black, strokewidth = 1.3)
 Colorbar(f[1, 2], p)
-f</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../primitives/">« -</a><a class="docs-footer-nextpage" href="../centroid/">- »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Saturday 20 May 2023 13:13">Saturday 20 May 2023</span>. Using Julia version 1.9.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+f</code></pre><pre><code class="language-julia hljs">&quot;&quot;&quot;
+    abstract type AbstractBarycentricCoordinateMethod
+
+Abstract supertype for barycentric coordinate methods.
+The subtypes may serve as dispatch types, or may cache
+some information about the target polygon.
+
+# API
+The following methods must be implemented for all subtypes:
+- `barycentric_coordinates!(λs::Vector{&lt;: Real}, method::AbstractBarycentricCoordinateMethod, polypoints::Vector{&lt;: Point{N1, T1}}, point::Point{N2, T2})`
+&quot;&quot;&quot;
+abstract type AbstractBarycentricCoordinateMethod end
+
+Base.@propagate_inbounds function barycentric_coordinates!(λs::Vector{&lt;: Real}, method::AbstractBarycentricCoordinateMethod, polypoints::Vector{&lt;: Point{N1, T1}}, point::Point{N2, T2}) where {N1, N2, T1 &lt;: Real, T2 &lt;: Real}
+    @boundscheck @assert length(λs) == length(polypoints)
+    @boundscheck @assert length(polypoints) &gt;= 3
+
+    @error(&quot;Not implemented yet for method $(method).&quot;)
+end
+
+Base.@propagate_inbounds function barycentric_coordinates(method::AbstractBarycentricCoordinateMethod, polypoints::Vector{&lt;: Point{N1, T1}}, point::Point{N2, T2}) where {N1, N2, T1 &lt;: Real, T2 &lt;: Real}
+    λs = zeros(promote_type(T1, T2), length(polypoints))
+    barycentric_coordinates!(λs, method, polypoints, point)
+    return λs
+end
+
+struct MeanValue &lt;: AbstractBarycentricCoordinateMethod
+end
+
+struct Wachspress &lt;: AbstractBarycentricCoordinateMethod
+end</code></pre><pre><code class="language- hljs">n = 200
+angles = range(0, 2pi, length = n)
+x_ext = 2 .* cos.(angles .+ pi/n)
+y_ext = 2 .* sin.(angles .+ pi/n)
+x_int = cos.(angles)
+y_int = sin.(angles)
+z_ext = (x_ext .- 0.5).^2 + (y_ext .- 0.5).^2 .+ 0.05.*randn.()
+z_int = (x_int .- 0.5).^2 + (y_int .- 0.5).^2 .+ 0.05.*randn.()
+z = vcat(z_ext, z_int)
+circ_poly = Polygon(Point2f.(x_ext, y_ext), [Point2f.(x_int, y_int)])
+ext = GeoInterface.extent(circ_poly)
+xrange = LinRange(ext.X..., 1000)
+yrange = LinRange(ext.Y..., 1000)
+@time mean_value_coordinate_field = mean_value_barycentric_coordinates.(
+    (circ_poly,),
+    Point2f.(xrange, yrange&#39;)
+)
+
+mean_values = ThreadsX.map(mean_value_coordinate_field) do λs
+    sum(λs .* z)
+end
+f, a, p = heatmap(xrange, yrange, mean_values; colormap = :viridis, axis = (; aspect = DataAspect()))
+poly!(a, circ_poly; color = :transparent, strokecolor = :black, strokewidth = 1.3)
+f</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../primitives/">« -</a><a class="docs-footer-nextpage" href="../centroid/">- »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Sunday 21 May 2023 12:51">Sunday 21 May 2023</span>. Using Julia version 1.9.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

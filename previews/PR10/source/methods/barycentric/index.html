@@ -95,12 +95,14 @@ Base.@propagate_inbounds function barycentric_coordinates!(λs::Vector{&lt;: Rea
 
     @error(&quot;Not implemented yet for method $(method).&quot;)
 end
+Base.@propagate_inbounds barycentric_coordinates!(λs::Vector{&lt;: Real}, polypoints::AbstractVector{&lt;: Point{N1, T1}}, point::Point{N2, T2}) where {N1, N2, T1 &lt;: Real, T2 &lt;: Real} = barycentric_coordinates!(λs, MeanValue(), polypoints, point)
 
 Base.@propagate_inbounds function barycentric_coordinates(method::AbstractBarycentricCoordinateMethod, polypoints::AbstractVector{&lt;: Point{N1, T1}}, point::Point{N2, T2}) where {N1, N2, T1 &lt;: Real, T2 &lt;: Real}
     λs = zeros(promote_type(T1, T2), length(polypoints))
     barycentric_coordinates!(λs, method, polypoints, point)
     return λs
 end
+Base.@propagate_inbounds barycentric_coordinates(polypoints::AbstractVector{&lt;: Point{N1, T1}}, point::Point{N2, T2}) where {N1, N2, T1 &lt;: Real, T2 &lt;: Real} = barycentric_coordinates(MeanValue(), polypoints, point)
 
 Base.@propagate_inbounds function barycentric_interpolate(method::AbstractBarycentricCoordinateMethod, polypoints::AbstractVector{&lt;: Point{N, T1}}, values::AbstractVector{V}, point::Point{N, T2}) where {N, T1 &lt;: Real, T2 &lt;: Real, V}
     @boundscheck @assert length(values) == length(polypoints)
@@ -108,6 +110,7 @@ Base.@propagate_inbounds function barycentric_interpolate(method::AbstractBaryce
     λs = barycentric_coordinates(method, polypoints, point)
     return sum(λs .* values)
 end
+Base.@propagate_inbounds barycentric_interpolate(polypoints::AbstractVector{&lt;: Point{N, T1}}, values::AbstractVector{V}, point::Point{N, T2}) where {N, T1 &lt;: Real, T2 &lt;: Real, V} = barycentric_interpolate(MeanValue(), polypoints, values, point)
 
 Base.@propagate_inbounds function barycentric_interpolate(method::AbstractBarycentricCoordinateMethod, exterior::AbstractVector{&lt;: Point{N, T1}}, interiors::AbstractVector{&lt;: Point{N, T1}}, values::AbstractVector{V}, point::Point{N, T2}) where {N, T1 &lt;: Real, T2 &lt;: Real, V}
     @boundscheck @assert length(values) == length(exterior) + isempty(interiors) ? 0 : sum(length.(interiors))
@@ -115,6 +118,7 @@ Base.@propagate_inbounds function barycentric_interpolate(method::AbstractBaryce
     λs = barycentric_coordinates(method, exterior, interiors, point)
     return sum(λs .* values)
 end
+Base.@propagate_inbounds barycentric_interpolate(exterior::AbstractVector{&lt;: Point{N, T1}}, interiors::AbstractVector{&lt;: Point{N, T1}}, values::AbstractVector{V}, point::Point{N, T2}) where {N, T1 &lt;: Real, T2 &lt;: Real, V} = barycentric_interpolate(MeanValue(), exterior, interiors, values, point)
 
 Base.@propagate_inbounds function barycentric_interpolate(method::AbstractBarycentricCoordinateMethod, polygon::Polygon{2, T1}, values::AbstractVector{V}, point::Point{2, T2}) where {T1 &lt;: Real, T2 &lt;: Real, V}
     exterior = decompose(Point{2, promote_type(T1, T2)}, polygon.exterior)
@@ -126,7 +130,8 @@ Base.@propagate_inbounds function barycentric_interpolate(method::AbstractBaryce
         @boundscheck @assert length(values) == length(exterior) + sum(length.(interiors))
         return barycentric_interpolate(method, exterior, interiors, values, point)
     end
-end</code></pre><p>3D polygons are considered to have their vertices in the XY plane, and the Z coordinate must represent some value.  This is to say that the Z coordinate is interpreted as an M coordinate.</p><pre><code class="language-julia hljs">Base.@propagate_inbounds function barycentric_interpolate(method::AbstractBarycentricCoordinateMethod, polygon::Polygon{3, T1}, point::Point{2, T2}) where {T1 &lt;: Real, T2 &lt;: Real}
+end
+Base.@propagate_inbounds barycentric_interpolate(polygon::Polygon{2, T1}, values::AbstractVector{V}, point::Point{2, T2}) where {T1 &lt;: Real, T2 &lt;: Real, V} = barycentric_interpolate(MeanValue(), polygon, values, point)</code></pre><p>3D polygons are considered to have their vertices in the XY plane, and the Z coordinate must represent some value.  This is to say that the Z coordinate is interpreted as an M coordinate.</p><pre><code class="language-julia hljs">Base.@propagate_inbounds function barycentric_interpolate(method::AbstractBarycentricCoordinateMethod, polygon::Polygon{3, T1}, point::Point{2, T2}) where {T1 &lt;: Real, T2 &lt;: Real}
     exterior_point3s = decompose(Point{3, promote_type(T1, T2)}, polygon.exterior)
     exterior_values = getindex.(exterior_point3s, 3)
     exterior_points = Point2f.(exterior_point3s)
@@ -138,7 +143,8 @@ end</code></pre><p>3D polygons are considered to have their vertices in the XY p
         interior_points = map(point3s -&gt; Point2f.(point3s), interior_point3s)
         return barycentric_interpolate(method, exterior_points, interior_points, vcat(exterior_values, interior_values), point)
     end
-end</code></pre><p>This method is the one which supports GeoInterface.</p><pre><code class="language-julia hljs">Base.@propagate_inbounds function barycentric_interpolate(method::AbstractBarycentricCoordinateMethod, polygon, values::AbstractVector{V}, point) where V
+end
+Base.@propagate_inbounds barycentric_interpolate(polygon::Polygon{3, T1}, point::Point{2, T2}) where {T1 &lt;: Real, T2 &lt;: Real} = barycentric_interpolate(MeanValue(), polygon, point)</code></pre><p>This method is the one which supports GeoInterface.</p><pre><code class="language-julia hljs">Base.@propagate_inbounds function barycentric_interpolate(method::AbstractBarycentricCoordinateMethod, polygon, values::AbstractVector{V}, point) where V
     @assert GeoInterface.trait(polygon) isa GeoInterface.PolygonTrait
     @assert GeoInterface.trait(point) isa GeoInterface.PointTrait
     passable_polygon = GeoInterface.convert(GeometryBasics, polygon)
@@ -147,7 +153,7 @@ end</code></pre><p>This method is the one which supports GeoInterface.</p><pre><
     passable_point = GeoInterface.convert(GeometryBasics, point)
     return barycentric_interpolate(method, passable_polygon, Point2(passable_point))
 end
-
+Base.@propagate_inbounds barycentric_interpolate(polygon, values::AbstractVector{V}, point) where V = barycentric_interpolate(MeanValue(), polygon, values, point)
 
 &quot;&quot;&quot;
     weighted_mean(weight::Real, x1, x2)
@@ -370,4 +376,4 @@ end</code></pre><p>When you have holes, then you have to be careful about the or
 end
 
 struct Wachspress &lt;: AbstractBarycentricCoordinateMethod
-end</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../utils/">« Utility functions</a><a class="docs-footer-nextpage" href="../centroid/">Centroid »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Sunday 4 June 2023 20:39">Sunday 4 June 2023</span>. Using Julia version 1.9.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+end</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../utils/">« Utility functions</a><a class="docs-footer-nextpage" href="../centroid/">Centroid »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Sunday 4 June 2023 20:57">Sunday 4 June 2023</span>. Using Julia version 1.9.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

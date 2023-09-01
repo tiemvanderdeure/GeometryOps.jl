@@ -6,11 +6,13 @@ export line_on_line, line_in_polygon, polygon_in_polygon</code></pre><p>These ar
 
 Take a ring and return true or false whether or not the ring is clockwise or counter-clockwise.
 
-# Examples
+# Example
+
 ```jldoctest
 import GeoInterface as GI, GeometryOps as GO
-line = GI.LineString([(0, 0), (1, 1), (1, 0), (0, 0)])
-GO.isclockwise(line)</code></pre><p>output</p><pre><code class="language-julia hljs">true
+
+ring = GI.LinearRing([(0, 0), (1, 1), (1, 0), (0, 0)])
+GO.isclockwise(ring)</code></pre><p>output</p><pre><code class="language-julia hljs">true
 ```
 &quot;&quot;&quot;
 isclockwise(geom)::Bool = isclockwise(GI.trait(geom), geom)
@@ -32,6 +34,7 @@ Take a polygon and return true or false as to whether it is concave or not.
 # Examples
 ```jldoctest
 import GeoInterface as GI, GeometryOps as GO
+
 poly = GI.Polygon([[(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)]])
 GO.isconcave(poly)</code></pre><p>output</p><pre><code class="language-julia hljs">false
 ```
@@ -39,9 +42,7 @@ GO.isconcave(poly)</code></pre><p>output</p><pre><code class="language-julia hlj
 function isconcave(poly)::Bool
     sign = false
 
-    exterior = GI.getexterior(poly)
-    GI.npoint(exterior) &lt;= 4 &amp;&amp; return false
-
+    exterior = GI.getexterior(poly)</code></pre><p>FIXME handle not closed polygons</p><pre><code class="language-julia hljs">    GI.npoint(exterior) &lt;= 4 &amp;&amp; return false
     n = GI.npoint(exterior) - 1
 
     for i in 1:n
@@ -69,28 +70,24 @@ function isconcave(poly)::Bool
     return false
 end
 
+equals(geo1, geo2) = _equals(trait(geo1), geo1, trait(geo2), geo2)
 
-function equals(geo1, geo2)
-    GI.geomtrait(geo1) !== GI.geomtrait(geo2) &amp;&amp; return false
-
-    GI.geomtrait(geo1) isa PointTrait &amp;&amp; return compare_points(geo1, geo2)
-    GI.geomtrait(geo1) isa LineStringTrait &amp;&amp; return compare_lines(geo1, geo2)
-
-    error(&quot;Cant compare $(GI.trait(geo1)) and $(GI.trait(geo2)) yet&quot;)
-end
-
-function compare_points(p1, p2)
-    length(p1) !== length(p2) &amp;&amp; return false
-
-    for i in eachindex(p1)
-        round(p1[i]; digits=10) !== round(p2[i]; digits=10) &amp;&amp; return false
+_equals(::T, geo1, ::T, geo2) where T = error(&quot;Cant compare $T yet&quot;)
+function _equals(::T, p1, ::T, p2) where {T&lt;:PointTrait}
+    GI.ncoord(p1) == GI.ncoord(p2) || return false
+    GI.x(p1) == GI.x(p2) || return false
+    GI.y(p1) == GI.y(p2) || return false
+    if GI.is3d(p1)
+        GI.z(p1) == GI.z(p2) || return false
     end
-
     return true
 end
-
-function compare_lines(p1::Vector, p2::Vector)</code></pre><p>TODO: complete this</p><pre><code class="language-julia hljs">    length(p1[1]) !== length(p2[1]) &amp;&amp; return false
-end</code></pre><p>&quot;&quot;&quot;     parallel(line1::LineString, line2::LineString)::Bool</p><p>Return <code>true</code> if each segment of <code>line1</code> is parallel to the correspondent segment of <code>line2</code></p><h2 id="Examples"><a class="docs-heading-anchor" href="#Examples">Examples</a><a id="Examples-1"></a><a class="docs-heading-anchor-permalink" href="#Examples" title="Permalink"></a></h2><pre><code class="language-julia hljs">import GeoInterface as GI, GeometryOps as GO
+function _equals(::T, l1, ::T, l2) where {T&lt;:AbstractCurveTrait}</code></pre><p>Check line lengths match</p><pre><code class="language-julia hljs">    GI.npoint(l1) == GI.npoint(l2) || return false</code></pre><p>Then check all points are the same</p><pre><code class="language-julia hljs">    for (p1, p2) in zip(GI.getpoint(l1), GI.getpoint(l2))
+        equals(p1, p2) || return false
+    end
+    return true
+end
+_equals(t1, geo1, t2, geo2) = false</code></pre><p>&quot;&quot;&quot;     isparallel(line1::LineString, line2::LineString)::Bool</p><p>Return <code>true</code> if each segment of <code>line1</code> is parallel to the correspondent segment of <code>line2</code></p><h2 id="Examples"><a class="docs-heading-anchor" href="#Examples">Examples</a><a id="Examples-1"></a><a class="docs-heading-anchor-permalink" href="#Examples" title="Permalink"></a></h2><pre><code class="language-julia hljs">import GeoInterface as GI, GeometryOps as GO
 julia&gt; line1 = GI.LineString([(9.170356, 45.477985), (9.164434, 45.482551), (9.166644, 45.484003)])
 GeoInterface.Wrappers.LineString{false, false, Vector{Tuple{Float64, Float64}}, Nothing, Nothing}([(9.170356, 45.477985), (9.164434, 45.482551), (9.166644, 45.484003)], nothing, nothing)
 
@@ -106,15 +103,17 @@ true</code></pre><p>&quot;&quot;&quot; function isparallel(line1, line2)::Bool  
     _isparallel(coors1, coors2) == false &amp;&amp; return false
 end
 return true</code></pre><p>end</p><p>@inline function <em>isparallel(p1, p2)     slope1 = bearing</em>to<em>azimuth(rhumb</em>bearing(GI.x(p1), GI.x(p2)))     slope2 = bearing<em>to</em>azimuth(rhumb_bearing(GI.y(p1), GI.y(p2)))</p><pre><code class="nohighlight hljs">return slope1 === slope2</code></pre><p>end</p><pre><code class="language-julia hljs">&quot;&quot;&quot;
-    point_on_line(point::Point, line::LineString, ignoreEndVertices::Bool=false)::Bool
+    point_on_line(point::Point, line::LineString; ignore_end_vertices::Bool=false)::Bool
 
 Return true if a point is on a line. Accept a optional parameter to ignore the
 start and end vertices of the linestring.
 
 # Examples
+
 ```jldoctest
 import GeoInterface as GI, GeometryOps as GO
-point = GI.Point(1, 1)
+
+point = (1, 1)
 line = GI.LineString([(0, 0), (3, 3), (4, 4)])
 GO.point_on_line(point, line)</code></pre><p>output</p><pre><code class="language-julia hljs">true
 ```
@@ -123,25 +122,25 @@ function point_on_line(point, line; ignore_end_vertices::Bool=false)::Bool
     line_points = tuple_points(line)
     n = length(line_points)
 
-    ignore = :none
+    exclude_boundary = :none
     for i in 1:n - 1
-        if ignore_end_vertices == true
+        if ignore_end_vertices
             if i === 1
-                ignore = :start
+                exclude_boundary = :start
             elseif i === n - 2
-                ignore = :end
+                exclude_boundary = :end
             elseif (i === 1 &amp;&amp; i + 1 === n - 1)
-                ignore = :both
+                exclude_boundary = :both
             end
         end
-        if point_on_segment(line_points[i], line_points[i + 1], point, ignore)
+        if point_on_segment(point, (line_points[i], line_points[i + 1]); exclude_boundary)
             return true
         end
     end
     return false
 end
 
-function point_on_segment(start, stop, point, exclude_boundary::Symbol=:none)::Bool
+function point_on_segment(point, (start, stop); exclude_boundary::Symbol=:none)::Bool
     x, y = GI.x(point), GI.y(point)
     x1, y1 = GI.x(start), GI.y(start)
     x2, y2 = GI.x(stop), GI.y(stop)
@@ -175,45 +174,50 @@ function point_on_segment(start, stop, point, exclude_boundary::Symbol=:none)::B
 end
 
 &quot;&quot;&quot;
-    point_in_polygon(point::Point, polygon::Union{Polygon, MultiPolygon}, ignoreBoundary::Bool=false)::Bool
+    point_in_polygon(point::Point, polygon::Union{Polygon, MultiPolygon}, ignore_boundary::Bool=false)::Bool
 
 Take a Point and a Polygon and determine if the point
 resides inside the polygon. The polygon can be convex or concave. The function accounts for holes.
 
 # Examples
+
 ```jldoctest
 import GeoInterface as GI, GeometryOps as GO
+
 point = (-77.0, 44.0)
-poly = GI.Polygon([[[-81, 41], [-81, 47], [-72, 47], [-72, 41], [-81, 41]]])
+poly = GI.Polygon([[(-81, 41), (-81, 47), (-72, 47), (-72, 41), (-81, 41)]])
 GO.point_in_polygon(point, poly)</code></pre><p>output</p><pre><code class="language-julia hljs">true
 ```
 &quot;&quot;&quot;
-function point_in_polygon(p, polygon, ignore_boundary::Bool=false)::Bool
-    GI.trait(polygon) isa PolygonTrait || throw(ArgumentError(&quot;Not a polygon&quot;))
-
-    point_in_extent(p, GI.extent(polygon)) || return false
-    point_in_ring(p, GI.getexterior(polygon), ignore_boundary) || return false
-
-    for ring in GI.gethole(polygon)
-        point_in_ring(pt, ring, !ignore_boundary) &amp;&amp; return false
+point_in_polygon(point, polygon; kw...)::Bool =
+    point_in_polygon(GI.trait(point), point, GI.trait(polygon), polygon; kw...)
+function point_in_polygon(
+    ::PointTrait, point,
+    ::PolygonTrait, poly;
+    ignore_boundary::Bool=false,
+    check_extent::Bool=false,
+)::Bool</code></pre><p>Cheaply check that the point is inside the polygon extent</p><pre><code class="language-julia hljs">    if check_extent
+        point_in_extent(point, GI.extent(poly)) || return false
+    end</code></pre><p>Then check the point is inside the exterior ring</p><pre><code class="language-julia hljs">    point_in_polygon(point, GI.getexterior(poly); ignore_boundary, check_extent=false) || return false</code></pre><p>Finally make sure the point is not in any of the holes, flipping the boundary condition</p><pre><code class="language-julia hljs">    for ring in GI.gethole(poly)
+        point_in_polygon(point, ring; ignore_boundary=!ignore_boundary) &amp;&amp; return false
     end
     return true
 end
-
-function point_in_ring(pt, ring, ignore_boundary::Bool=false)
-    GI.trait(ring) isa Union{LineStringTrait,LinearRingTrait} || throw(ArgumentError(&quot;Not a ring&quot;))
-    inside = false
+function point_in_polygon(
+    ::PointTrait, pt,
+    ::Union{LineStringTrait,LinearRingTrait}, ring;
+    ignore_boundary::Bool=false,
+    check_extent::Bool=false,
+)::Bool</code></pre><p>Cheaply check that the point is inside the ring extent</p><pre><code class="language-julia hljs">    if check_extent
+        point_in_extent(point, GI.extent(ring)) || return false
+    end</code></pre><p>Then check the point is inside the ring</p><pre><code class="language-julia hljs">    inside = false
     n = GI.npoint(ring)
-    p1 = first(GI.getpoint(ring))
-    p_end = GI.getpoint(ring, n)
-
-    l = if GI.x(p1) == GI.x(p_end) &amp;&amp; GI.y(p1) == GI.y(p_end)
-        l = n -1
+    p_start = GI.getpoint(ring, 1)
+    p_end = GI.getpoint(ring, n)</code></pre><p>Handle closed on non-closed rings</p><pre><code class="language-julia hljs">    l = if GI.x(p_start) == GI.x(p_end) &amp;&amp; GI.y(p_start) == GI.y(p_end)
+        l = n - 1
     else
         n
-    end
-
-    for i in 1:l - 1
+    end</code></pre><p>Loop over all points in the ring</p><pre><code class="language-julia hljs">    for i in 1:l - 1
         j = i + 1
 
         p_i = GI.getpoint(ring, i)
@@ -240,99 +244,40 @@ function point_in_ring(pt, ring, ignore_boundary::Bool=false)
 end
 
 function point_in_extent(p, extent::Extents.Extent)
-    extent.X[1] &lt;= GI.x(p) &amp;&amp; extent.Y[1] &lt;= GI.y(p) &amp;&amp;
-        extent.X[2] &gt;= GI.x(p) &amp;&amp; extent.Y[2] &gt;= GI.y(p)
-end
-
-function line_in_polygon(poly, line)
-    out = false
-
-    polybox = bbox(poly)
-    linebox = bbox(line)
-
-    !(bboxOverlap(polybox, linebox)) &amp;&amp; return false
-
-    coords = line.coordinates
-
-    for i in 1:length(coords) - 1
-        mid = [(coords[i][1] + coords[i + 1][1]) / 2, (coords[i][2] + coords[i + 1][2]) / 2]
-        if point_in_polygon(Point(mid), poly, true)
-            out = true
-            break
-        end
-    end
-    return out
+    (x1, x2), (y1, y1) = extent.X, extent.Y
+    return x1 &lt;= GI.x(p) &amp;&amp; y1 &lt;= GI.y(p) &amp;&amp; x2 &gt;= GI.x(p) &amp;&amp; y2 &gt;= GI.y(p)
 end
 
 line_on_line(line1, line2) = line_on_line(trait(line1), line1, trait(line2), line2)
 function line_on_line(t1::GI.AbstractCurveTrait, line1, t2::AbstractCurveTrait, line2)
-    for p in GI.getpoint(line1)
-        point_on_line(p, line2) || return false
+    for p in GI.getpoint(line1)</code></pre><p>FIXME: all points being on the line doesn&#39;t actually mean the whole line is on the line...</p><pre><code class="language-julia hljs">        point_on_line(p, line2) || return false
     end
     return true
 end
 
 line_in_polygon(line, poly) = line_in_polygon(trait(line), line, trait(poly), poly)
-function line_in_polygon(::LineStringTrait, line, ::PolygonTrait, poly)
-    polybox = bbox(poly)
-    linebox = bbox(line)
+function line_in_polygon(
+    ::AbstractCurveTrait, line,
+    ::Union{AbstractPolygonTrait,LinearRingTrait}, poly
+)
+    Extents.intersects(GI.extent(poly), GI.extent(line)) || return false
 
-    !(bboxOverlap(polybox, linebox)) &amp;&amp; return false
-
-    coords = line.coordinates
     inside = false
-
-    for i in 1:length(coords) - 1
-        !(point_in_polygon(Point(coords[i]), poly)) &amp;&amp; return false
-        !inside &amp;&amp; (inside = point_in_polygon(Point(coords[i]), poly, true))
+    for i in 1:GI.npoint(line) - 1
+        p = GI.getpoint(line, i)
+        p2 = GI.getpoint(line, i + 1)
+        point_in_polygon(p, poly) || return false
         if !inside
-            mid = [(coords[i][1] + coords[i + 1][1]) / 2, (coords[i][2] + coords[i + 1][2]) / 2]
-            inside = point_in_polygon(Point(mid), poly, true)
+            inside = point_in_polygon(p, poly; ignore_boundary=true)
+        end</code></pre><p>FIXME This seems like a hack, we should check for intersections rather than midpoint??</p><pre><code class="language-julia hljs">        if !inside
+            mid = ((GI.x(p) + GI.x(p2)) / 2, (GI.y(p) + GI.y(p2)) / 2)
+            inside = point_in_polygon(mid, poly; ignore_boundary=true)
         end
     end
     return inside
-end</code></pre><p>TODO - why were there two methods for this in Turf.jl?</p><pre><code class="language-julia hljs">function polygon_in_polygon(ft1, ft2, reverse::Bool=false)
-    polybox1 = bbox(ft1)
-    polybox2 = bbox(ft2)
-    coords = []
-
-    if reverse
-        !(bbox_overlap(polybox2, polybox1)) &amp;&amp; return false
-
-        for point in GI.getpoint(ft1)
-            !(point_in_polygon(point, ft2)) &amp;&amp; return false
-        end
-    else
-        !(bbox_overlap(polybox1, polybox2)) &amp;&amp; return false
-
-        for point in GI.getpoint(ft2)
-            !(point_in_polygon(point, ft1)) &amp;&amp; return false
-        end
-    end
-
-    return true
-end
-function poly_in_poly(poly1, poly2)
-
-    for point in GI.getpoint(poly1)
-        (point_in_polygon(point, poly2)) &amp;&amp; return true
-    end
-
-    for point in GI.getpoint(poly2)
-        (point_in_polygon(point, poly1)) &amp;&amp; return true
-    end
-
-    inter = line_intersects(polygon_to_line(poly1), polygon_to_line(poly2))
-    inter != nothing &amp;&amp; return true
-
-    return false
-
 end
 
-function bbox_overlap(box1::Vector{T}, box2::Vector{T}) where {T &lt;: Real}
-    box1[1] &gt; box2[1] &amp;&amp; return false
-    box1[3] &lt; box2[3] &amp;&amp; return false
-    box1[2] &gt; box2[2] &amp;&amp; return false
-    box1[4] &lt; box2[4] &amp;&amp; return false
-    return true
-end</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../barycentric/">« Barycentric coordinates</a><a class="docs-footer-nextpage" href="../centroid/">Centroid »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Tuesday 1 August 2023 17:01">Tuesday 1 August 2023</span>. Using Julia version 1.9.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+function polygon_in_polygon(poly1, poly2)</code></pre><p>edges1, edges2 = to<em>edges(poly1), to</em>edges(poly2) extent1, extent2 = to<em>extent(edges1), to</em>extent(edges2) Check the extents intersect</p><pre><code class="language-julia hljs">     Extents.intersects(GI.extent(poly1), GI.extent(poly2)) || return false</code></pre><p>Check all points in poly1 are in poly2</p><pre><code class="language-julia hljs">     for point in GI.getpoint(poly1)
+         point_in_polygon(point, poly2) || return false
+     end</code></pre><p>Check the line of poly1 does not intersect the line of poly2</p><pre><code class="language-julia hljs">     line_intersects(poly1, poly2) &amp;&amp; return false</code></pre><p>poly1 must be in poly2</p><pre><code class="language-julia hljs">     return true
+ end</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../barycentric/">« Barycentric coordinates</a><a class="docs-footer-nextpage" href="../centroid/">Centroid »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Friday 1 September 2023 12:00">Friday 1 September 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

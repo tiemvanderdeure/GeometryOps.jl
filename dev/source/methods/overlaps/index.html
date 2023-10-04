@@ -28,15 +28,15 @@ function overlaps(::MultiPointTrait, g1, ::MultiPointTrait, g2)::Bool
     end
 end
 function overlaps(::PolygonTrait, g1, ::PolygonTrait, g2)::Bool
-    return intersects(g1, g2)
+    return line_intersects(g1, g2)
 end
 function overlaps(t1::MultiPolygonTrait, mp, t2::PolygonTrait, p1)::Bool
     for p2 in GI.getgeom(mp)
-        overlaps(p1, p2) &amp;&amp; return true
+        overlaps(p1, thp2) &amp;&amp; return true
     end
 end
 function overlaps(::MultiPolygonTrait, g1, ::MultiPolygonTrait, g2)::Bool
     for p1 in GI.getgeom(g1)
         overlaps(PolygonTrait(), mp, PolygonTrait(), p1) &amp;&amp; return true
     end
-end</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../intersects/">« Intersection checks</a><a class="docs-footer-nextpage" href="../polygonize/">Polygonizing raster data »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Wednesday 4 October 2023 06:46">Wednesday 4 October 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+end</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../intersects/">« Intersection checks</a><a class="docs-footer-nextpage" href="../polygonize/">Polygonizing raster data »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Wednesday 4 October 2023 19:35">Wednesday 4 October 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

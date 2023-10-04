@@ -198,48 +198,46 @@ function point_in_polygon(
     check_extent::Bool=false,
 )::Bool</code></pre><p>Cheaply check that the point is inside the polygon extent</p><pre><code class="language-julia hljs">    if check_extent
         point_in_extent(point, GI.extent(poly)) || return false
-    end</code></pre><p>Then check the point is inside the exterior ring</p><pre><code class="language-julia hljs">    point_in_polygon(point, GI.getexterior(poly); ignore_boundary, check_extent=false) || return false</code></pre><p>Finally make sure the point is not in any of the holes, flipping the boundary condition</p><pre><code class="language-julia hljs">    for ring in GI.gethole(poly)
-        point_in_polygon(point, ring; ignore_boundary=!ignore_boundary) &amp;&amp; return false
+    end</code></pre><p>Then check the point is inside the exterior ring</p><pre><code class="language-julia hljs">    point_in_polygon(
+        point,GI.getexterior(poly);
+        ignore_boundary, check_extent=false,
+    ) || return false</code></pre><p>Finally make sure the point is not in any of the holes, flipping the boundary condition</p><pre><code class="language-julia hljs">    for ring in GI.gethole(poly)
+        point_in_polygon(
+            point, ring;
+            ignore_boundary=!ignore_boundary,
+        ) &amp;&amp; return false
     end
     return true
 end
+
 function point_in_polygon(
     ::PointTrait, pt,
     ::Union{LineStringTrait,LinearRingTrait}, ring;
     ignore_boundary::Bool=false,
     check_extent::Bool=false,
-)::Bool</code></pre><p>Cheaply check that the point is inside the ring extent</p><pre><code class="language-julia hljs">    if check_extent
+)::Bool
+    x, y = GI.x(pt), GI.y(pt)</code></pre><p>Cheaply check that the point is inside the ring extent</p><pre><code class="language-julia hljs">    if check_extent
         point_in_extent(point, GI.extent(ring)) || return false
     end</code></pre><p>Then check the point is inside the ring</p><pre><code class="language-julia hljs">    inside = false
     n = GI.npoint(ring)
     p_start = GI.getpoint(ring, 1)
-    p_end = GI.getpoint(ring, n)</code></pre><p>Handle closed on non-closed rings</p><pre><code class="language-julia hljs">    l = if GI.x(p_start) == GI.x(p_end) &amp;&amp; GI.y(p_start) == GI.y(p_end)
-        l = n - 1
-    else
-        n
-    end</code></pre><p>Loop over all points in the ring</p><pre><code class="language-julia hljs">    for i in 1:l - 1
-        j = i + 1
-
-        p_i = GI.getpoint(ring, i)
-        p_j = GI.getpoint(ring, j)
-        xi = GI.x(p_i)
-        yi = GI.y(p_i)
-        xj = GI.x(p_j)
-        yj = GI.y(p_j)
-
-        on_boundary = (GI.y(pt) * (xi - xj) + yi * (xj - GI.x(pt)) + yj * (GI.x(pt) - xi) == 0) &amp;&amp;
-            ((xi - GI.x(pt)) * (xj - GI.x(pt)) &lt;= 0) &amp;&amp; ((yi - GI.y(pt)) * (yj - GI.y(pt)) &lt;= 0)
-
-        on_boundary &amp;&amp; return !ignore_boundary
-
-        intersects = ((yi &gt; GI.y(pt)) !== (yj &gt; GI.y(pt))) &amp;&amp;
-            (GI.x(pt) &lt; (xj - xi) * (GI.y(pt) - yi) / (yj - yi) + xi)
-
+    p_end = GI.getpoint(ring, n)</code></pre><p>Handle closed vs opne rings</p><pre><code class="language-julia hljs">    if GI.x(p_start) == GI.x(p_end) &amp;&amp; GI.y(p_start) == GI.y(p_end)
+        n -= 1
+    end</code></pre><p>Loop over all points in the ring</p><pre><code class="language-julia hljs">    for i in 1:(n - 1)</code></pre><p>First point on edge</p><pre><code class="language-julia hljs">        p_i = GI.getpoint(ring, i)
+        xi, yi = GI.x(p_i), GI.y(p_i)</code></pre><p>Second point on edge (j = i + 1)</p><pre><code class="language-julia hljs">        p_j = GI.getpoint(ring, i + 1)
+        xj, yj = GI.x(p_j), GI.y(p_j)</code></pre><p>Check if point is on the ring boundary</p><pre><code class="language-julia hljs">        on_boundary = (  # vertex to point has same slope as edge
+            yi * (xj - x) + yj * (x - xi) == y * (xj - xi) &amp;&amp;
+            (xi - x) * (xj - x) &lt;= 0 &amp;&amp;  # x is between xi and xj
+            (yi - y) * (yj - y) &lt;= 0     # y is between yi and yj
+        )
+        on_boundary &amp;&amp; return !ignore_boundary</code></pre><p>Check if ray from point passes through edge</p><pre><code class="language-julia hljs">        intersects = (
+            (yi &gt; y) !== (yj &gt; y) &amp;&amp;
+            (x &lt; (xj - xi) * (y - yi) / (yj - yi) + xi)
+        )
         if intersects
             inside = !inside
         end
     end
-
     return inside
 end
 
@@ -256,6 +254,7 @@ function line_on_line(t1::GI.AbstractCurveTrait, line1, t2::AbstractCurveTrait, 
 end
 
 line_in_polygon(line, poly) = line_in_polygon(trait(line), line, trait(poly), poly)
+
 function line_in_polygon(
     ::AbstractCurveTrait, line,
     ::Union{AbstractPolygonTrait,LinearRingTrait}, poly
@@ -277,7 +276,7 @@ function line_in_polygon(
     return inside
 end
 
-function polygon_in_polygon(poly1, poly2)</code></pre><p>edges1, edges2 = to<em>edges(poly1), to</em>edges(poly2) extent1, extent2 = to<em>extent(edges1), to</em>extent(edges2) Check the extents intersect</p><pre><code class="language-julia hljs">     Extents.intersects(GI.extent(poly1), GI.extent(poly2)) || return false</code></pre><p>Check all points in poly1 are in poly2</p><pre><code class="language-julia hljs">     for point in GI.getpoint(poly1)
-         point_in_polygon(point, poly2) || return false
-     end</code></pre><p>Check the line of poly1 does not intersect the line of poly2</p><pre><code class="language-julia hljs">     line_intersects(poly1, poly2) &amp;&amp; return false</code></pre><p>poly1 must be in poly2</p><pre><code class="language-julia hljs">     return true
- end</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../barycentric/">« Barycentric coordinates</a><a class="docs-footer-nextpage" href="../centroid/">Centroid »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Monday 2 October 2023 19:46">Monday 2 October 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+function polygon_in_polygon(poly1, poly2)</code></pre><p>edges1, edges2 = to<em>edges(poly1), to</em>edges(poly2) extent1, extent2 = to<em>extent(edges1), to</em>extent(edges2) Check the extents intersect</p><pre><code class="language-julia hljs">    Extents.intersects(GI.extent(poly1), GI.extent(poly2)) || return false</code></pre><p>Check all points in poly1 are in poly2</p><pre><code class="language-julia hljs">    for point in GI.getpoint(poly1)
+        point_in_polygon(point, poly2) || return false
+    end</code></pre><p>Check the line of poly1 does not intersect the line of poly2</p><pre><code class="language-julia hljs">    #intersects(poly1, poly2) &amp;&amp; return false</code></pre><p>poly1 must be in poly2</p><pre><code class="language-julia hljs">    return true
+ end</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../barycentric/">« Barycentric coordinates</a><a class="docs-footer-nextpage" href="../centroid/">Centroid »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Wednesday 4 October 2023 06:46">Wednesday 4 October 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

@@ -19,19 +19,30 @@ end
 apply(f, ::Type{Target}, geom; kw...) where Target = _apply(f, Target, geom; kw...)
 
 _apply(f, ::Type{Target}, geom; kw...)  where Target =
-    _apply(f, Target, GI.trait(geom), geom; kw...)</code></pre><p>Try to _apply over iterables</p><pre><code class="language-julia hljs">_apply(f, ::Type{Target}, ::Nothing, iterable; kw...) where Target =
-    map(x -&gt; _apply(f, Target, x; kw...), iterable)</code></pre><p>Rewrap feature collections</p><pre><code class="language-julia hljs">function _apply(f, ::Type{Target}, ::GI.FeatureCollectionTrait, fc; crs=GI.crs(fc), calc_extent=false) where Target
-    applicator(feature) = _apply(f, Target, feature; crs, calc_extent)::GI.Feature
-    features = map(applicator, GI.getfeature(fc))
+    _apply(f, Target, GI.trait(geom), geom; kw...)
+function _apply(f, ::Type{Target}, ::Nothing, A::AbstractArray; threaded=false, kw...) where Target
+    _maptasks(eachindex(A); threaded) do i
+        _apply(f, Target, A[i]; kw...)
+    end
+end</code></pre><p>Try to _apply over iterables</p><pre><code class="language-julia hljs">_apply(f, ::Type{Target}, ::Nothing, iterable; kw...) where Target =
+    map(x -&gt; _apply(f, Target, x; kw...), iterable)</code></pre><p>Rewrap feature collections</p><pre><code class="language-julia hljs">function _apply(f, ::Type{Target}, ::GI.FeatureCollectionTrait, fc;
+    crs=GI.crs(fc), calc_extent=false, threaded=false
+) where Target
+    features = _maptasks(1:GI.nfeature(fc); threaded) do i
+        feature = GI.getfeature(fc, i)
+        _apply(f, Target, feature; crs, calc_extent)::GI.Feature
+    end
     if calc_extent
-        extent = rebuce(features; init=GI.extent(first(features))) do (acc, f)
+        extent = reduce(features; init=GI.extent(first(features))) do acc, f
             Extents.union(acc, Extents.extent(f))
         end
         return GI.FeatureCollection(features; crs, extent)
     else
         return GI.FeatureCollection(features; crs)
     end
-end</code></pre><p>Rewrap features</p><pre><code class="language-julia hljs">function _apply(f, ::Type{Target}, ::GI.FeatureTrait, feature; crs=GI.crs(feature), calc_extent=false) where Target
+end</code></pre><p>Rewrap features</p><pre><code class="language-julia hljs">function _apply(f, ::Type{Target}, ::GI.FeatureTrait, feature;
+    crs=GI.crs(feature), calc_extent=false, threaded=false
+) where Target
     properties = GI.properties(feature)
     geometry = _apply(f, Target, GI.geometry(feature); crs, calc_extent)
     if calc_extent
@@ -41,9 +52,10 @@ end</code></pre><p>Rewrap features</p><pre><code class="language-julia hljs">fun
         return GI.Feature(geometry; properties, crs)
     end
 end</code></pre><p>Reconstruct nested geometries</p><pre><code class="language-julia hljs">function _apply(f, ::Type{Target}, trait, geom;
-    crs=GI.crs(geom), calc_extent=false
-)::(GI.geointerface_geomtype(trait)) where Target</code></pre><p>TODO handle zero length...</p><pre><code class="language-julia hljs">    applicator(g) = _apply(f, Target, g; crs, calc_extent)
-    geoms = map(applicator, GI.getgeom(geom))
+    crs=GI.crs(geom), calc_extent=false, threaded=false
+)::(GI.geointerface_geomtype(trait)) where Target</code></pre><p>TODO handle zero length...</p><pre><code class="language-julia hljs">    geoms = _maptasks(1:GI.ngeom(geom); threaded) do i
+        _apply(f, Target, GI.getgeom(geom, i); crs, calc_extent)
+    end
     if calc_extent
         extent = GI.extent(first(geoms))
         for g in geoms
@@ -53,10 +65,10 @@ end</code></pre><p>Reconstruct nested geometries</p><pre><code class="language-j
     else
         return rebuild(geom, geoms; crs)
     end
-end</code></pre><p>Apply f to the target geometry</p><pre><code class="language-julia hljs">_apply(f, ::Type{Target}, ::Trait, geom; crs=GI.crs(geom), calc_extent=false) where {Target,Trait&lt;:Target} = f(geom)</code></pre><p>Fail if we hit PointTrait without running <code>f</code></p><pre><code class="language-julia hljs">_apply(f, ::Type{Target}, trait::GI.PointTrait, geom; crs=nothing, calc_extent=false) where Target =
-    throw(ArgumentError(&quot;target $Target not found, but reached a `PointTrait` leaf&quot;))</code></pre><p>Specific cases to avoid method ambiguity</p><pre><code class="language-julia hljs">_apply(f, ::Type{GI.PointTrait}, trait::GI.PointTrait, geom; crs=nothing, calc_extent=false) = f(geom)
-_apply(f, ::Type{GI.FeatureTrait}, ::GI.FeatureTrait, feature; crs=GI.crs(feature), calc_extent=false) = f(feature)
-_apply(f, ::Type{GI.FeatureCollectionTrait}, ::GI.FeatureCollectionTrait, fc; crs=GI.crs(fc)) = f(fc)
+end</code></pre><p>Apply f to the target geometry</p><pre><code class="language-julia hljs">_apply(f, ::Type{Target}, ::Trait, geom; crs=GI.crs(geom), kw...) where {Target,Trait&lt;:Target} = f(geom)</code></pre><p>Fail if we hit PointTrait without running <code>f</code></p><pre><code class="language-julia hljs">_apply(f, ::Type{Target}, trait::GI.PointTrait, geom; crs=nothing, kw...) where Target =
+    throw(ArgumentError(&quot;target $Target not found, but reached a `PointTrait` leaf&quot;))</code></pre><p>Specific cases to avoid method ambiguity</p><pre><code class="language-julia hljs">_apply(f, ::Type{GI.PointTrait}, trait::GI.PointTrait, geom; kw...) = f(geom)
+_apply(f, ::Type{GI.FeatureTrait}, ::GI.FeatureTrait, feature; kw...) = f(feature)
+_apply(f, ::Type{GI.FeatureCollectionTrait}, ::GI.FeatureCollectionTrait, fc; kw...) = f(fc)
 
 &quot;&quot;&quot;
     unwrap(target::Type{&lt;:AbstractTrait}, obj)
@@ -174,4 +186,15 @@ function rebuild(trait::GI.AbstractTrait, geom::Union{GB.LineString,GB.MultiPoin
 end
 function rebuild(trait::GI.PolygonTrait, geom::GB.Polygon, child_geoms; crs=nothing)
     Polygon(child_geoms[1], child_geoms[2:end])
-end</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../GeometryOps/">« GeometryOps.jl</a><a class="docs-footer-nextpage" href="../utils/">Utility functions »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Thursday 26 October 2023 15:20">Thursday 26 October 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+end
+
+using Base.Threads: nthreads, @threads, @spawn</code></pre><p>Threading utility, modified Mason Protters threading PSA run <code>f</code> over ntasks, where f recieves an AbstractArray/range of linear indices</p><pre><code class="language-julia hljs">function _maptasks(f, taskrange; threaded=false)
+    if threaded
+        ntasks = length(taskrange)</code></pre><p>Customize this as needed. More tasks have more overhead, but better load balancing</p><pre><code class="language-julia hljs">        tasks_per_thread = 2
+        chunk_size = max(1, ntasks ÷ (tasks_per_thread * nthreads()))</code></pre><p>partition the range into chunks</p><pre><code class="language-julia hljs">        task_chunks = Iterators.partition(taskrange, chunk_size)</code></pre><p>Map over the chunks</p><pre><code class="language-julia hljs">        tasks = map(task_chunks) do chunk</code></pre><p>Spawn a task to process this chunk</p><pre><code class="language-julia hljs">            @spawn begin</code></pre><p>Where we map <code>f</code> over the chunk indices</p><pre><code class="language-julia hljs">                map(f, chunk)
+            end
+        end</code></pre><p>Finally we join the results into a new vector</p><pre><code class="language-julia hljs">        return reduce(vcat, map(fetch, tasks))
+    else
+        return map(f, taskrange)
+    end
+end</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../GeometryOps/">« GeometryOps.jl</a><a class="docs-footer-nextpage" href="../utils/">Utility functions »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Thursday 2 November 2023 01:00">Thursday 2 November 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

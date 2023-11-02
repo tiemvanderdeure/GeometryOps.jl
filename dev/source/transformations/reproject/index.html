@@ -29,9 +29,13 @@ function reproject(geom;
     source_crs=nothing, target_crs=nothing, transform=nothing, kw...
 )
     if isnothing(transform)
-        source_crs = isnothing(source_crs) ? GeoInterface.crs(geom) : source_crs
-        isnothing(source_crs) &amp;&amp; throw(ArgumentError(&quot;geom has no crs attatched. Pass a `source_crs` keyword&quot;))
-        reproject(geom, source_crs, target_crs; kw...)
+        if isnothing(source_crs)
+            source_crs = if GI.trait(geom) isa Nothing &amp;&amp; geom isa AbstractArray
+                GeoInterface.crs(first(geom))
+            else
+                GeoInterface.crs(geom)
+            end
+        end</code></pre><p>If its still nothing, error</p><pre><code class="language-julia hljs">        isnothing(source_crs) &amp;&amp; throw(ArgumentError(&quot;geom has no crs attatched. Pass a `source_crs` keyword&quot;))</code></pre><p>Otherwise reproject</p><pre><code class="language-julia hljs">        reproject(geom, source_crs, target_crs; kw...)
     else
         reproject(geom, transform; kw...)
     end
@@ -40,17 +44,18 @@ function reproject(geom, source_crs, target_crs;
     time=Inf,
     always_xy=true,
     transform=Proj.Transformation(Proj.CRS(source_crs), Proj.CRS(target_crs); always_xy),
+    kw...
 )
-    reproject(geom, transform; time, target_crs)
+    reproject(geom, transform; time, target_crs, kw...)
 end
-function reproject(geom, transform::Proj.Transformation; time=Inf, target_crs=nothing)
+function reproject(geom, transform::Proj.Transformation; time=Inf, target_crs=nothing, kw...)
     if _is3d(geom)
-        return apply(PointTrait, geom; crs=target_crs) do p
+        return apply(PointTrait, geom; crs=target_crs, kw...) do p
             transform(GI.x(p), GI.y(p), GI.z(p))
         end
     else
-        return apply(PointTrait, geom; crs=target_crs) do p
+        return apply(PointTrait, geom; crs=target_crs, kw...) do p
             transform(GI.x(p), GI.y(p))
         end
     end
-end</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../flip/">« Coordinate flipping</a><a class="docs-footer-nextpage" href="../simplify/">Geometry simplification »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Thursday 26 October 2023 15:20">Thursday 26 October 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+end</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../flip/">« Coordinate flipping</a><a class="docs-footer-nextpage" href="../simplify/">Geometry simplification »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Thursday 2 November 2023 01:00">Thursday 2 November 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

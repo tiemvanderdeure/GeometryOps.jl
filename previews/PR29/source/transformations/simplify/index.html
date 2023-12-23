@@ -18,6 +18,7 @@ abstract type SimplifyAlg end
 
 const SIMPLIFY_ALG_KEYWORDS = &quot;&quot;&quot;
 # Keywords
+
 - `ratio`: the fraction of points that should remain after `simplify`.
     Useful as it will generalise for large collections of objects.
 - `number`: the number of points that should remain after `simplify`.
@@ -44,7 +45,7 @@ end
 
 &quot;&quot;&quot;
     simplify(obj; kw...)
-    simplify(::SimplifyAlg, obj)
+    simplify(::SimplifyAlg, obj; kw...)
 
 Simplify a geometry, feature, feature collection,
 or nested vectors or a table of these.
@@ -56,7 +57,11 @@ listed in order of increasing quality but decreaseing performance.
 `PoinTrait` and `MultiPointTrait` are returned unchanged.
 
 The default behaviour is `simplify(DouglasPeucker(; kw...), obj)`.
-Pass in other `SimplifyAlg` to use other algorithms.</code></pre><p>Example</p><pre><code class="language-julia hljs">Simplify a polygon to have six points:
+Pass in other `SimplifyAlg` to use other algorithms.</code></pre><p>Keywords</p><pre><code class="language-julia hljs">$APPLY_KEYWORDS
+
+Keywords for DouglasPeucker are allowed when no algorithm is specified:
+
+$SIMPLIFY_ALG_KEYWORDS</code></pre><p>Example</p><pre><code class="language-julia hljs">Simplify a polygon to have six points:
 
 ```jldoctest
 import GeoInterface as GI
@@ -88,8 +93,8 @@ simple = GO.simplify(poly; number=6)
 GI.npoint(simple)</code></pre><p>output</p><pre><code class="language-julia hljs">6
 ```
 &quot;&quot;&quot;
-simplify(data; calc_extent=false, threaded=false, kw...) =
-    _simplify(DouglasPeucker(; kw...), data; calc_extent, threaded)
+simplify(data; calc_extent=false, threaded=false, crs=nothing, kw...) =
+    _simplify(DouglasPeucker(; kw...), data; calc_extent, threaded, crs)
 simplify(alg::SimplifyAlg, data; kw...) = _simplify(alg, data; kw...)
 
 function _simplify(alg::SimplifyAlg, data; kw...)
@@ -378,4 +383,4 @@ function _flat_tolerances(f, points)
     return result
 end
 
-_remove!(s, i) = s[i:end-1] .= s[i+1:end]</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../reproject/">« Geometry reprojection</a><a class="docs-footer-nextpage" href="../tuples/">Tuple conversion »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Saturday 23 December 2023 18:59">Saturday 23 December 2023</span>. Using Julia version 1.9.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+_remove!(s, i) = s[i:end-1] .= s[i+1:end]</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../reproject/">« Geometry reprojection</a><a class="docs-footer-nextpage" href="../tuples/">Tuple conversion »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Saturday 23 December 2023 22:13">Saturday 23 December 2023</span>. Using Julia version 1.9.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

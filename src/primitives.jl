@@ -147,7 +147,7 @@ function _apply(f, ::Type{Target}, ::GI.FeatureTrait, feature;
     end
 end
 # Reconstruct nested geometries
-function _apply(f, ::Type{Target}, trait, geom; 
+function _apply(f, ::Type{Target}, trait::GI.AbstractGeometryTrait, geom; 
     crs=GI.crs(geom), calc_extent=false, threaded=false
 )::(GI.geointerface_geomtype(trait)) where Target
     # Map `_apply` over all sub geometries of `geom`
@@ -155,6 +155,28 @@ function _apply(f, ::Type{Target}, trait, geom;
     # TODO handle zero length
     geoms = _maptasks(1:GI.ngeom(geom); threaded) do i
         _apply(f, Target, GI.getgeom(geom, i); crs, calc_extent, threaded=false)
+    end
+    if calc_extent
+        # Calculate the extent of the sub geometries
+        extent = mapreduce(GI.extent, Extents.union, geoms)
+        # Return a new geometry of the same trait as `geom`, 
+        # holding tnew `geoms` with `crs` and calcualted extent
+        return rebuild(geom, geoms; crs, extent)
+    else
+        # Return a new geometryof the same trait as `geom`, holding the new `geoms` with `crs`
+        return rebuild(geom, geoms; crs)
+    end
+end
+# Reconstruct nested geometries
+function _apply(
+    f, ::Type{Target}, trait::Union{GI.LineStringTrait,GI.LinearRingTrait,GI.MultiPointTrait}, geom; 
+    crs=GI.crs(geom), calc_extent=false, threaded=false
+)::(GI.geointerface_geomtype(trait)) where Target
+    # We do not thread at this level, as child geoms are individual points
+    # We also use `getgeom(geom)` to allow optimisations that return all 
+    # points in a linestring etc, rather than getting one at time.
+    geoms = map(GI.getgeom(geom)) do g
+        _apply(f, Target, g; crs, calc_extent, threaded=false)
     end
     if calc_extent
         # Calculate the extent of the sub geometries

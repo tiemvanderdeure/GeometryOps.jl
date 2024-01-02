@@ -58,13 +58,18 @@ end</code></pre><h1 id="MultiPolygons-and-GeometryCollections"><a class="docs-he
     geoms,
 ) where T =
     sum((area(geom, T) for geom in GI.getgeom(geoms)), init = zero(T))</code></pre><p>Helper function:</p><p>Calculates the signed area of a given curve. This is equivalent to integrating to find the area under the curve. Even if curve isn&#39;t explicitly closed by repeating the first point at the end of the coordinates, curve is still assumed to be closed.</p><pre><code class="language-julia hljs">function _signed_area(::Type{T}, geom) where T
-    area = zero(T)</code></pre><p>Close curve, even if last point isn&#39;t explicitly repeated</p><pre><code class="language-julia hljs">    np = GI.npoint(geom)
+    area = zero(T)
+    np = GI.npoint(geom)
     np == 0 &amp;&amp; return area
-    first_last_equal = equals(GI.getpoint(geom, 1), GI.getpoint(geom, np))
-    np -= first_last_equal ? 1 : 0</code></pre><p>Integrate the area under the curve</p><pre><code class="language-julia hljs">    p1 = GI.getpoint(geom, np)
-    for i in 1:np
-        p2 = GI.getpoint(geom, i)</code></pre><p>Accumulate the area into <code>area</code></p><pre><code class="language-julia hljs">        area += GI.x(p1) * GI.y(p2) - GI.y(p1) * GI.x(p2)
+
+    first = true
+    local pfirst, p1</code></pre><p>Integrate the area under the curve</p><pre><code class="language-julia hljs">    for p2 in GI.getpoint(geom)</code></pre><p>Skip the first and do it later This lets us work within one iteration over geom, which means on C call when using points from external libraries.</p><pre><code class="language-julia hljs">        if first
+            p1 = pfirst = p2
+            first = false
+            continue
+        end</code></pre><p>Accumulate the area into <code>area</code></p><pre><code class="language-julia hljs">        area += GI.x(p1) * GI.y(p2) - GI.y(p1) * GI.x(p2)
         p1 = p2
-    end
+    end</code></pre><p>Complete the last edge. If the first and last where the same this will be zero</p><pre><code class="language-julia hljs">    p2 = pfirst
+    area += GI.x(p1) * GI.y(p2) - GI.y(p1) * GI.x(p2)
     return T(area / 2)
-end</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../utils/">« Utility functions</a><a class="docs-footer-nextpage" href="../barycentric/">Barycentric coordinates »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Saturday 30 December 2023 02:04">Saturday 30 December 2023</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+end</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../utils/">« Utility functions</a><a class="docs-footer-nextpage" href="../barycentric/">Barycentric coordinates »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Tuesday 2 January 2024 12:28">Tuesday 2 January 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

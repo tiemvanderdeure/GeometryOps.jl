@@ -199,7 +199,7 @@ function _simplify(alg::DouglasPeucker, points::Vector, preserve_endpoint)
     results[1], results[2] = 1, npoints</code></pre><p>Loop through points until stopping criteria are fulfilled</p><pre><code class="language-julia hljs">    i = 2  # already have first and last point added
     start_idx, end_idx = 1, npoints
     max_idx, max_dist = _find_max_squared_dist(points, start_idx, end_idx)
-    while i &lt; max_points &amp;&amp; max_dist &gt; max_tol</code></pre><p>Add next point to results</p><pre><code class="language-julia hljs">        i += 1
+    while i ≤ min(MIN_POINTS + 1, max_points) || (i &lt; max_points &amp;&amp; max_dist &gt; max_tol)</code></pre><p>Add next point to results</p><pre><code class="language-julia hljs">        i += 1
         results[i] = max_idx</code></pre><p>Determine which point to add next by checking left and right of point</p><pre><code class="language-julia hljs">        left_idx, left_dist = _find_max_squared_dist(points, start_idx, max_idx)
         right_idx, right_dist = _find_max_squared_dist(points, max_idx, end_idx)
         left_vals = (start_idx, left_idx, max_idx, left_dist)
@@ -257,7 +257,7 @@ end
 by conencting the points at start_idx and end_idx. Note that the first index of maximum
 value will be used, which might cause differences in results from other algorithms.=#
 function _find_max_squared_dist(points, start_idx, end_idx)
-    max_idx = 0
+    max_idx = start_idx
     max_dist = zero(Float64)
     for i in (start_idx + 1):(end_idx - 1)
         d = _squared_distance_line(Float64, points[i], points[start_idx], points[end_idx])
@@ -433,4 +433,4 @@ _remove!(s, i) = s[i:end-1] .= s[i+1:end]</code></pre><p>Check SimplifyAlgs inpu
         end
     end
     return nothing
-end</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../reproject/">« Geometry reprojection</a><a class="docs-footer-nextpage" href="../transform/">- »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Thursday 18 January 2024 14:51">Thursday 18 January 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+end</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../reproject/">« Geometry reprojection</a><a class="docs-footer-nextpage" href="../transform/">- »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Thursday 18 January 2024 19:08">Thursday 18 January 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

@@ -58,9 +58,8 @@ end
 This function takes `result::BenchmarkTools.BenchmarkGroup` and plots the trials.  It returns the figure.
 """
 function plot_trials(
-        results, 
-        title_str_part; 
-        theme = merge(Makie.CURRENT_DEFAULT_THEME, MakieThemes.bbc()),
+        results;
+        theme = merge(deepcopy(Makie.CURRENT_DEFAULT_THEME), MakieThemes.bbc()),
         legend_position = (1, 1, TopRight()),
         legend_orientation = :horizontal,
         legend_halign = 1.0,
@@ -80,11 +79,12 @@ function plot_trials(
         push!(labels, label)
     end
 
-    return Makie.with_theme(theme) do
+    tag_theme = merge(theme, capture_tag_attrs(results.tags))
+
+    return Makie.with_theme(tag_theme) do
         fig = Figure()
         ax = Axis(
             fig[1, 1];
-            title = title_str_part, subtitle = "Tested on a regular circle",
             xlabel = "Number of points", ylabel = "Time to calculate",
             xscale = log10, yscale = log10, ytickformat = _prettytime,
         ) 
@@ -105,4 +105,25 @@ function plot_trials(
         ax.ygridwidth[] = 0.75
         return fig
     end
+end
+
+const _tag_includelist = ["title", "subtitle"]
+
+function capture_tag_attrs(tags)
+    attr_dict = Attributes()
+    axis = attr_dict.Axis = Attributes()
+    for tag in tags
+        for possibility in sort(_tag_includelist; by = length)
+            if startswith(tag, possibility)
+                axis[Symbol(possibility)] = tag[(length(possibility) + 2):end]
+                break
+            end
+        end
+    end
+    return attr_dict
+end
+
+function decompose_benchmarksuite_to_2ndlevel(result)
+    # here, `result` is a BenchmarkGroup.
+    
 end
